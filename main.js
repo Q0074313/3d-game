@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Vector3 } from 'three';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 
 const scene = new THREE.Scene();
@@ -15,18 +15,40 @@ const material = new THREE.MeshNormalMaterial();
 const mesh = new THREE.Mesh( geometry, material );
 scene.add( mesh );
 
+// const light = new THREE.AmbientLight(0x404040);
+// scene.add(light);
+const light2 = new THREE.DirectionalLight(0xffffff, 1);
+light2.position.set(2,2,5);
+scene.add(light2);
+
+const loader = new GLTFLoader();
+
+loader.load( 'assets/Asphalt.glb', function ( object1 ) {
+
+	scene.add( object1.scene );
+
+}, undefined, function ( error ) {
+
+	console.error( error );
+
+} );
+
+
+
 camera.position.x = 0;
-camera.position.y = 0;
+camera.position.y = 0.5;
 camera.position.z = 5;
 
-//camera.position.y = 0.1;
-//camera.rotation.z = Math.PI/4;
-
-//const movement = new THREE.Vector3();
-
-const keyPressed = false
-
-
+let keys={
+	W: false,
+	S: false,
+	A: false,
+	D: false,
+	Space: false,
+	Shift: false
+}
+var MoveSpeed=0.04;
+var JumpSpeed=0;
 
 const controls = new PointerLockControls( camera, renderer.domElement );
 controls.enabled = true;
@@ -36,65 +58,94 @@ document.body.onclick=()=>{
   controls.lock();
 }
 
-/*document.addEventListener('keydown', (event) => {
-	switch (event.keyCode) {
+setInterval(movement, 5);
 
-		keyPressed = true
-		
-
-		if(keyPressed == true){
-		
+document.onkeydown = function(e) {
+	let keyCode=e.keyCode;
+	if(keyCode == 87){
+		keys.W=true;
+	}
+	if(keyCode == 83){
+		keys.S=true;
+	}
+	if(keyCode == 65){
+		keys.A=true;
+	}
+	if(keyCode == 68){
+		keys.D=true;
+	}
+	if(keyCode == 16){
+		if(camera.position.y>=0.5){
+			camera.position.y -= 0.25;
+			MoveSpeed = 0.015;
 		}
 	}
-})*/
-
-/*document.addEventListener('keydown', (event)=>{
-	if(event.keyCode){
-		keyPressed = true
-		console.log(keyPressed)
-		movement()
+	if(keyCode == 32){
+		keys.Space = true;
+		if(camera.position.y == 0.5){
+			 JumpSpeed=0.2;
+		}
 	}
-})
-
-document.addEventListener('keyup', (event)=>{
-	if(event.keyCode){
-		keyPressed = false
-	}	
-})*/
-
-document.onkeydown=()=>{
-	keyPressed = true
-	console.log(keyPressed)
-	movement()
 }
 
-document.onkeyup=()=>{
-	keyPressed = false
+document.onkeyup = function(e) {
+	let keyCode=e.keyCode;
+	if(keyCode == 87){
+		keys.W=false;
+	}
+	if(keyCode == 83){
+		keys.S=false;
+	}
+	if(keyCode == 65){
+		keys.A=false;
+	}
+	if(keyCode == 68){
+		keys.D=false;
+	}
+	if(keyCode == 16){
+		if(camera.position.y<=0.25){
+			camera.position.y += 0.25;
+		}
+		MoveSpeed=0.04;
+	}
+	if(keyCode == 32){
+		if(camera.position.y == 0.5){
+			keys.Space = false;
+			JumpSpeed=0;
+		}
+	}
 }
 
 function movement(){
-	if(keyPressed == true){
-		if(keyCode == 87){
-			controls.moveForward(0.25);
-		}
-		if(keyCode == 83){
-			controls.moveForward(-0.25);
-		}
-		if(keyCode == 65){
-			controls.moveRight(-0.25);
-		}
-		if(keyCode == 68){
-			controls.moveRight(0.25);
+	console.log(keys)
+	if(keys.W){
+		controls.moveForward(MoveSpeed);
+	}
+	if(keys.S){
+		controls.moveForward(-MoveSpeed);
+	}
+	if(keys.A){
+		controls.moveRight(-MoveSpeed);
+	}
+	if(keys.D){
+		controls.moveRight(MoveSpeed);
+	}
+	if(keys.Space){
+		camera.position.y += JumpSpeed;
+		JumpSpeed -= 0.005;
+		if(camera.position.y<=0.5){
+			keys.Space = false;
+			JumpSpeed = 0;
+			if(keys.Shift==false){
+				camera.position.y = 0.5
+			}
+			if(keys.Shift==true){
+				camera.position.y = 0.25
+			}
 		}
 	}	
 }
 
-
-
-/*document.addEventListener('mousemove', (event) => {
-	controls.movementX += event.movementX;
-	controls.movementY += event.movementY;
-})*/
 
 document.onmousemove=(event)=>{
 	controls.movementX += event.movementX;
@@ -104,24 +155,7 @@ document.onmousemove=(event)=>{
 function render() {
 	requestAnimationFrame(render);
 
-	// if (controls.isLocked === true) {
-		
-	// 	//controls.update();
-	// 	let r=camera.rotation;
-	// 	let m=movement.transformDirection(camera.projectionMatrix);
-		
-	// 	if(movement.x || movement.y || movement.z){
-	// 		console.log(movement,r,m);
-	// 	}
-		
-	// 	camera.position.add(m);
-
-	// }
-
-	
-
 	renderer.render(scene, camera);
 }
 
 render();
-
